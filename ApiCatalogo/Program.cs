@@ -5,6 +5,7 @@ using ApiCatalogo.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,11 +44,44 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+#region jwtAuthorization
+
+app.MapPost("/login", [AllowAnonymous] (UserModel userModel, ITokenService tokenService) =>
+    {
+        if (userModel == null)
+        {
+            return Results.BadRequest("Login Invalido");
+        }
+
+        if(userModel.UserName == "guilherme" && userModel.PassWord == "1234")
+        {
+            var tokenString = tokenService.GerarToken (
+                app.Configuration["Jwt:Key"],
+                app.Configuration["Jwt:Issuer"],
+                app.Configuration["Jwt:Audience"],
+                userModel
+            );
+
+            return Results.Ok (
+                new { token = tokenString }
+            );
+        }
+        else
+        {
+            return Results.BadRequest("Login Invalido");
+        }
+    }
+)
+.Produces(StatusCodes.Status400BadRequest)
+.Produces(StatusCodes.Status200OK);
+
+#endregion
+
 #region  categorias
 
 app.MapGet("/categorias", async(AppDbContext db) =>
     await db.Categorias.ToListAsync()
-);
+).RequireAuthorization();
 
 app.MapGet("/categorias/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -113,7 +147,7 @@ app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
 
 app.MapGet("/produtos", async (AppDbContext db) =>
     await db.Produtos.ToListAsync()
-);
+).RequireAuthorization();
 
 app.MapGet("/produtos/{id:int}", async (int id, AppDbContext db) =>
 {
