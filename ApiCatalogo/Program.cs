@@ -1,6 +1,10 @@
+using System.Text;
 using ApiCatalogo.Context;
 using ApiCatalogo.Models;
+using ApiCatalogo.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,29 @@ string mysqlConnectio = builder.Configuration.GetConnectionString("DefaultConnec
 builder.Services.AddDbContext<AppDbContext>(
     options => options.UseMySql(mysqlConnectio,ServerVersion.AutoDetect(mysqlConnectio)));
 //String DB END
+
+//JWT Authorization
+builder.Services.AddSingleton<ITokenService>(
+    new TokenService()
+);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer( options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    }
+);
+
 
 var app = builder.Build();
 
@@ -81,7 +108,6 @@ app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
 });
 
 #endregion
-
 
 #region Produtos
 
