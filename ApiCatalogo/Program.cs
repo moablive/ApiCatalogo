@@ -39,7 +39,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     }
 );
-
+//JWT Authorization
 
 var app = builder.Build();
 
