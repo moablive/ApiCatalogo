@@ -1,12 +1,11 @@
+﻿using ApiCatalogo.Models;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 
-using ApiCatalogo.Models; 
+namespace ApiCatalogo.Services;
 
-namespace ApiCatalogo.Services
-{
     public class TokenService : ITokenService
     {
         public string GerarToken(string key, string issuer, string audience, UserModel user)
@@ -14,18 +13,18 @@ namespace ApiCatalogo.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.NameIdentifier,Guid.NewGuid().ToString())
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
+            var token = new JwtSecurityToken (
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(120),
+                expires: DateTime.Now.AddMinutes(10),
                 signingCredentials: credentials
             );
 
@@ -34,4 +33,3 @@ namespace ApiCatalogo.Services
             return stringToken;
         }
     }
-}

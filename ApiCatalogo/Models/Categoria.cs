@@ -1,14 +1,14 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace ApiCatalogo.Models;
-
+namespace ApiCatalogo.Models
+{
     public class Categoria
     {
-        public int CategoriaID { get; set; }
+        public int CategoriaId { get; set; }
         public string? Nome { get; set; }
         public string? Descricao { get; set; }
 
-        //Relacionamento
-        [JsonIgnore] //=>RELACIONAMENTO
+        [JsonIgnore]
         public ICollection<Produto>? Produtos { get; set; }
     }
+}
